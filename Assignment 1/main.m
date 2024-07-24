@@ -88,14 +88,14 @@ tf = 2;
 h_vect = [0.5 0.2 0.05 0.01];
 h_l = length(h_vect);
 
+% Define number of iteration to have an accurate estimate of the cpu time
+n_iter = 10000;
+
 % Initialize cells and arrays to store results
 T = cell(h_l, 2);
 X = cell(h_l, 3);
 cpu_time = zeros(n_iter, h_l, 2);
 rel_error = cell(h_l, 2);
-
-% Define number of iteration to have an accurate estimate of the cpu time
-n_iter = 10000;
 
 % Compute numerical solution and measure CPU time
 for k = 1:n_iter
@@ -155,6 +155,63 @@ xlabel('CPU time [s]')
 ylabel('Relative error [-]')
 legend
 
+%% Exercise 3
+
+clearvars; close all; clc;
+syms h
+assume(h>=0);
+
+% system RHS
+A = @(alpha) [0 1; -1 2*cos(alpha)];
+
+% operators F(h,alpha)
+F_RK2 = @(h,alpha) eye( size(A(alpha)) ) + h*A(alpha) + h^2/2*A(alpha)^2;
+F_RK4 = @(h,alpha) h*A(alpha) + h^2/2*A(alpha)^2 + h^3/6*A(alpha)^3 + ...
+    h^4/24*A(alpha)^4  + eye( size(A(alpha) ) );
+
+% find largest timestep that guarantees stability
+alpha = 0:0.01:pi;
+h_RK2 = zeros(length(alpha),1);
+h_RK4 = h_RK2;
+lambda = h_RK2;
+% alpha = pi
+    h_rk2_pi = double( solve( max( abs( eig( F_RK2(h,pi) ) ) )==1) );
+    h_RK2(end) = h_rk2_pi(h_rk2_pi~=0);
+    h_rk4_pi = double( solve( max( abs( eig( F_RK4(h,pi) ) ) )==1) );
+    h_RK4(end) = h_rk4_pi(h_rk4_pi~=0);
+    lambda(end) = max( eig( A(pi) ) );  
+% alpha  in [0, pi)
+for i = length(alpha)-1:-1:1
+     h_RK2(i) =  fzero(@(h)max( abs( eig( F_RK2(h,alpha(i)) ) ) )-1,h_RK2(i+1));
+     h_RK4(i) =  fzero(@(h)max( abs( eig( F_RK4(h,alpha(i)) ) ) )-1,h_RK4(i+1));
+     lambda(i) = max( eig( A(alpha(i)) ) );
+end
+
+figure
+hold on
+grid on
+c=colororder('gem');
+plot([real(h_RK2.*lambda) real(h_RK2.*lambda)], [imag(h_RK2.*lambda) -imag(h_RK2.*lambda)],...
+    'Color',c(1,:),'DisplayName','RK2')
+plot([real(h_RK4.*lambda) real(h_RK4.*lambda)], [imag(h_RK4.*lambda) -imag(h_RK4.*lambda)],...
+     'Color',c(2,:),'DisplayName','RK4')
+axis equal
+xlabel('Re(h$\lambda$)')
+ylabel('Im(h$\lambda$)')
+
+%% Ex 4
+clearvars; close all; clc;
+
+% problem data
+x0 = [1;1];
+t0 = 0;
+tf = 1;
+
+h = 0.01;
+alpha = 1;
+
+f = @(x,t) [0 1; -1 2*cos(alpha)]*x;
+[t,x,fe] = RK([t0, tf], h, 1, f, x0);
 
 %% functions
 %%% general functions
@@ -248,7 +305,7 @@ end
 
 %%% functions Ex. 2
 
-function [t_vect, x] = RK(T, h, method, f, x0)
+function [t_vect, x, fe] = RK(T, h, method, f, x0)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % RK solves an ordinary differential equation (ODE) using a
@@ -272,10 +329,22 @@ function [t_vect, x] = RK(T, h, method, f, x0)
 %                 Column vector.
 %       - x: Solution matrix.
 %            Each row represents the state vector at a specific time.
+%       - fe: Number of function evaluations. Scalar
 %
+% define coefficients for RK1(Forward Euler), RK2 (Heun) and RK4
 
-% define coefficients for RK2 (Heun) and RK4
+arguments
+    T (2,1)
+    h (1,1)
+    method (1,1)
+    f 
+    x0 (1,:)
+end
+
     switch method
+        case 1
+            alpha = [0; 1];
+            beta = [0;1];
         case 2 
             alpha = [0; 1; 0];
             beta = [0, 0; 1, 0; 0.5, 0.5];
@@ -287,7 +356,7 @@ function [t_vect, x] = RK(T, h, method, f, x0)
                     0, 0, 1, 0;
                     1/6, 1/3, 1/3, 1/6];
         otherwise 
-            error('Choose a RK method between 2 and 4');
+            error('Choose a RK method between 1, 2 and 4');
     end
     
     % initialize variables
