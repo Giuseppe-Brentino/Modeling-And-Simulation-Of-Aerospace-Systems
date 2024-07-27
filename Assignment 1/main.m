@@ -5,7 +5,7 @@
 %% Exercise 1
 
 clearvars; close all; clc;
-% Set up plot style 
+% Set up plot style
 plotStyle;
 
 % Define symbolic variables and system of equations
@@ -41,7 +41,7 @@ for i = 1:size(real_sol, 2)
     % Analytic solution
     [analytic.x(:, i), analytic.max_e(i), analytic.it(i)] = newtonMethod(f, x0(:, i), tol, n_max, df);
 
-    % Approximated solution 
+    % Approximated solution
     [approx.x(:, i), approx.max_e(i), approx.it(i)] = newtonMethod(f, x0(:, i), tol, n_max);
 
 end
@@ -144,7 +144,7 @@ end
 max_rel_err = zeros(4, 2);
 for i = 1:h_l
     max_rel_err(i,1) = max(rel_error{i,1});
-    max_rel_err(i,2) = max(rel_error{i,2}); 
+    max_rel_err(i,2) = max(rel_error{i,2});
 end
 figure()
 grid on
@@ -165,9 +165,9 @@ assume(h>=0);
 A = @(alpha) [0 1; -1 2*cos(alpha)];
 
 % operators F(h,alpha)
-F_RK2 = @(h,alpha) eye( size(A(alpha)) ) + h*A(alpha) + h^2/2*A(alpha)^2;
+F_RK2 = @(h,alpha) eye( size(A(alpha),1) ) + h*A(alpha) + h^2/2*A(alpha)^2;
 F_RK4 = @(h,alpha) h*A(alpha) + h^2/2*A(alpha)^2 + h^3/6*A(alpha)^3 + ...
-    h^4/24*A(alpha)^4  + eye( size(A(alpha) ) );
+    h^4/24*A(alpha)^4  + eye( size(A(alpha),1 ) );
 
 % find largest timestep that guarantees stability
 alpha = 0:0.01:pi;
@@ -175,16 +175,16 @@ h_RK2 = zeros(length(alpha),1);
 h_RK4 = h_RK2;
 lambda = h_RK2;
 % alpha = pi
-    h_rk2_pi = double( solve( max( abs( eig( F_RK2(h,pi) ) ) )==1) );
-    h_RK2(end) = h_rk2_pi(h_rk2_pi~=0);
-    h_rk4_pi = double( solve( max( abs( eig( F_RK4(h,pi) ) ) )==1) );
-    h_RK4(end) = h_rk4_pi(h_rk4_pi~=0);
-    lambda(end) = max( eig( A(pi) ) );  
+h_rk2_pi = double( solve( max( abs( eig( F_RK2(h,pi) ) ) )==1) );
+h_RK2(end) = h_rk2_pi(h_rk2_pi~=0);
+h_rk4_pi = double( solve( max( abs( eig( F_RK4(h,pi) ) ) )==1) );
+h_RK4(end) = h_rk4_pi(h_rk4_pi~=0);
+lambda(end) = max( eig( A(pi) ) );
 % alpha  in [0, pi)
 for i = length(alpha)-1:-1:1
-     h_RK2(i) =  fzero(@(h)max( abs( eig( F_RK2(h,alpha(i)) ) ) )-1,h_RK2(i+1));
-     h_RK4(i) =  fzero(@(h)max( abs( eig( F_RK4(h,alpha(i)) ) ) )-1,h_RK4(i+1));
-     lambda(i) = max( eig( A(alpha(i)) ) );
+    h_RK2(i) =  fzero(@(h)max( abs( eig( F_RK2(h,alpha(i)) ) ) )-1,h_RK2(i+1));
+    h_RK4(i) =  fzero(@(h)max( abs( eig( F_RK4(h,alpha(i)) ) ) )-1,h_RK4(i+1));
+    lambda(i) = max( eig( A(alpha(i)) ) );
 end
 
 figure
@@ -194,7 +194,7 @@ c=colororder('gem');
 plot([real(h_RK2.*lambda) real(h_RK2.*lambda)], [imag(h_RK2.*lambda) -imag(h_RK2.*lambda)],...
     'Color',c(1,:),'DisplayName','RK2')
 plot([real(h_RK4.*lambda) real(h_RK4.*lambda)], [imag(h_RK4.*lambda) -imag(h_RK4.*lambda)],...
-     'Color',c(2,:),'DisplayName','RK4')
+    'Color',c(2,:),'DisplayName','RK4')
 axis equal
 xlabel('Re(h$\lambda$)')
 ylabel('Im(h$\lambda$)')
@@ -206,12 +206,172 @@ clearvars; close all; clc;
 x0 = [1;1];
 t0 = 0;
 tf = 1;
+A = @(alpha) [0 1; -1 2*cos(alpha)];
+tol_vect = [1e-3; 1e-4; 1e-5; 1e-6];
+alpha_vect = linspace(0,pi,300);
+t = [t0 tf];
 
-h = 0.01;
-alpha = 1;
+% operators F(h,alpha)
+F_RK1 = @(h,alpha) eye(size(A(alpha),1)) + h*(A(alpha));
+F_RK2 = @(h,alpha) eye( size(A(alpha),1) ) + h*A(alpha) + h^2/2*A(alpha)^2;
+F_RK4 = @(h,alpha) h*A(alpha) + h^2/2*A(alpha)^2 + h^3/6*A(alpha)^3 + ...
+    h^4/24*A(alpha)^4  + eye( size(A(alpha),1 ) );
 
-f = @(x,t) [0 1; -1 2*cos(alpha)]*x;
-[t,x,fe] = RK([t0, tf], h, 1, f, x0);
+%init matrices
+h_RK1 = zeros(length(alpha_vect),length(tol_vect));
+h_RK2 = h_RK1;
+h_RK4 = h_RK1;
+fe_RK1 = zeros(length(tol_vect),1);
+fe_RK2 = fe_RK1;
+fe_RK4 = fe_RK1;
+lambda = zeros(length(alpha_vect),1);
+
+h0_vec_RK1 = [1e-3, 1e-4, 1e-4, 1e-4];
+h0_vec_RK2 = [0.01, 0.1, 0.2, 0.002];
+h0_vec_RK4 = [0.7, 0.7, 0.4, 0.7];
+
+for i = 1:length(alpha_vect)
+    %analitical solution
+    x_an = expmv( A(alpha_vect(i)),x0,tf);
+    % max eigenvalue
+    lambda(i) = max(eig(A(alpha_vect(i))));
+
+    for j = 1:length(tol_vect)
+
+        if i~=1
+
+            h1_0 = h_RK1(i-1,j);
+            h2_0 =  h_RK2(i-1,j);
+            h4_0 =  h_RK4(i-1,j);
+        else
+            h1_0 = tol_vect(j);%h0_vec_RK1(j);
+            h2_0 =  h0_vec_RK2(j);
+            h4_0 =  h0_vec_RK4(j);
+        end
+
+        %%% FZERO NON FUNZIONA PER RK 2 E 4
+        h_RK1(i,j)= fzero(@(h) objFcn(x_an, t, h, F_RK1, x0, tol_vect(j), alpha_vect(i)) ,h1_0);
+        h_RK2(i,j) = fzero(@(h) objFcn(x_an, t, h, F_RK2, x0, tol_vect(j), alpha_vect(i)) ,[tol_vect(j) tf]);
+        h_RK4(i,j) = fzero(@(h) objFcn(x_an, t, h, F_RK4, x0, tol_vect(j), alpha_vect(i)) ,[tol_vect(j) tf]);
+
+        % function evaluations vs alpha
+        if i == length(alpha_vect)
+            fun = @(x,t) A(alpha_vect(i))*x;
+            [~, ~, fe_RK1(j)] = RK([t0, tf], h_RK1(i,j), 1, fun, x0);
+            [~, ~, fe_RK2(j)] = RK([t0, tf], h_RK2(i,j), 2, fun, x0);
+            % [~, ~, fe_RK4(j)] = RK([t0, tf], h_RK4(i,j), 4, fun, x0);
+        end
+
+    end
+end
+
+%plot fe vs tol
+figure
+loglog(tol_vect, fe_RK1,'DisplayName','RK1')
+hold on
+loglog(tol_vect, fe_RK2,'DisplayName','RK2')
+loglog(tol_vect, fe_RK4,'DisplayName','RK4')
+% plots h-lambda todo
+figure
+hold on
+grid on
+plot([real(h_RK1(:,1).*lambda) real(h_RK1(:,1).*lambda)], [imag(h_RK1(:,1).*lambda) -imag(h_RK1(:,1).*lambda)] )
+plot([real(h_RK2(:,1).*lambda) real(h_RK2(:,1).*lambda)], [imag(h_RK2(:,1).*lambda) -imag(h_RK2(:,1).*lambda)] )
+plot([real(h_RK4(:,1).*lambda) real(h_RK4(:,1).*lambda)], [imag(h_RK4(:,1).*lambda) -imag(h_RK4(:,1).*lambda)] )
+
+
+
+%% Ex 5
+clearvars; close all; clc;
+
+% Model matrix
+A = @(alpha) [0 1; -1 2*cos(alpha)];
+
+% BI2_theta operator
+B_BI2 = @(alpha, theta, h) ( eye(size(A(alpha),1)) - (1-theta)*h*A(alpha) + 0.5*((1-theta)*h)^2 * A(alpha)^2) \...
+    ( eye(size(A(alpha),1)) + theta*h*A(alpha) + 0.5*(theta*h)^2*A(alpha)^2 );
+
+% define variables
+syms h_sim
+assume(h_sim>0.1);
+theta = [0.1 0.3 0.4 0.7 0.9];
+alpha = linspace(0,pi,300);
+h = zeros(length(alpha), length(theta));
+lambda = zeros(length(alpha),1);
+
+% compute eigenvalues of A
+for i = 1:length(alpha)
+    lambda(i) = max( eig( A(alpha(i)) ) );
+end
+
+%plot stability regions
+figure
+c=colororder('gem');
+axis equal
+hold on
+grid on
+
+% compute the stability region for each theta
+for j = 1:length(theta)
+
+    %compute analitically the first timestep to have a good initial guess
+    %for the next steps
+    try
+        alpha = linspace(0,pi,300);
+        h(1,j) = double( solve( max( abs( eig( B_BI2(alpha(1),theta(j),h_sim) ) ) )==1) );
+        flip_flag = false;
+    catch
+        alpha = linspace(pi,0,300);
+        h(1,j) = double( solve( max( abs( eig( B_BI2(alpha(1),theta(j),h_sim) ) ) )==1) );
+        flip_flag = true;
+    end
+
+    % compute h and lambda for each alpha between 0 and pi
+    for i = 1:length(alpha)
+        if j==1
+            lambda(i) = max( eig( A(alpha(i)) ) );
+        end
+        if i ~= 1
+            h0 = h(i-1,j);
+            h(i,j) = fzero(@(h) max( abs( eig(B_BI2(alpha(i),theta(j),h)) ) )-1, h0 );
+        end
+    end
+    % if necessary, flip the vector of h so to match the computed
+    % eigenvalues lambda
+    if flip_flag
+        h(:,j) = flipud(h(:,j));
+    end
+
+    real_part = [real(h(:,j).*lambda);NaN; real(h(:,j).*lambda)];
+    imag_part = [imag(h(:,j).*lambda);NaN; -imag(h(:,j).*lambda)];
+    plot( real_part, imag_part,'DisplayName',"$BI2_{"+ num2str(theta(j)) + "}$",'Color',c(j,:));
+end
+legend
+
+%%NOTA: PER THETA > 0.5 LA STABILITY REGION è DENTRO I CERCHI, PER THETA<0.5 E FUORI
+
+%% Ex 6
+clearvars; close all; clc;
+
+%Problem data
+B = [-180.5, 219.5; 179.5, -220.5];
+x0 = [1; 1];
+h = 0.1;
+t0 = 0;
+tf = 5;
+
+% analytical solution
+t = t0:h:tf;
+x_an = expmv( B,x0,t);
+
+% RK4
+[~, x_rk4] = RK([t0, tf], h, 4, @(x,t)B*x, x0);
+
+figure
+hold on
+grid on
+plot(t,x_an(2,:))
+plot(t,x_rk4(:,2))
 
 %% functions
 %%% general functions
@@ -238,13 +398,99 @@ set(0, 'defaultLegendFontSize',12);
 set(0,'defaultAxesFontSize',16);
 end
 
+function [t_vect, x, fe] = RK(T, h, method, f, x0)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% RK solves an ordinary differential equation (ODE) using a
+% general explicit Runge-Kutta method.
+%
+%   Inputs:
+%       - T: Time span of the simulation.
+%            Vector, [t_initial, t_final].
+%       - h: Step size.
+%            Positive scalar.
+%       - method: Order of the Runge-Kutta method (2 or 4).
+%            Scalar.
+%       - f: Function handle representing the ODE.
+%            Function handle, f(x, t), where x is the state vector and t is
+%            the current time.
+%       - x0: Initial state vector.
+%            Column vector.
+%
+%   Outputs:
+%       - t_vect: Time vector.
+%                 Column vector.
+%       - x: Solution matrix.
+%            Each row represents the state vector at a specific time.
+%       - fe: Number of function evaluations. Scalar
+%
+% define coefficients for RK1(Forward Euler), RK2 (Heun) and RK4
+
+arguments
+    T (2,1)
+    h (1,1)
+    method (1,1)
+    f
+    x0 (1,:)
+end
+
+switch method
+    case 1
+        alpha = [0; 1];
+        beta = [0;1];
+    case 2
+        alpha = [0; 1; 0];
+        beta = [0, 0; 1, 0; 0.5, 0.5];
+    case 4
+        alpha = [0; 0.5; 0.5; 1; 1];
+        beta = [0, 0, 0, 0;
+            0.5, 0, 0, 0;
+            0, 0.5, 0, 0;
+            0, 0, 1, 0;
+            1/6, 1/3, 1/3, 1/6];
+    otherwise
+        error('Choose a RK method between 1, 2 and 4');
+end
+
+% initialize variables
+K = zeros(length(x0), method);
+t_vect = T(1):h:T(end);
+steps = length(t_vect);
+x = [x0; zeros(steps-1, length(x0))];
+fe = 0;
+
+% Integrate
+for k = 1:steps-1
+
+    % Compute each Runge-Kutta stage
+    for i = 1:size(K,2)
+        if i~=1
+            y = x(k, :) + h * sum(beta(i, :) .* K(:,i),2)';
+        else
+            y = x(k, :);
+        end
+        t = (t_vect(k) + alpha(i) * h);
+        K(:,i) = f(y', t);
+        fe = fe+1;
+    end
+
+    % Update the solution using the Runge-Kutta stages and coefficients
+    s = zeros(1,length(x0));
+    for i = 1:method
+        s = s + (beta(end, i) * K(:,i))';
+    end
+    x(k+1, :) = x(k, :) + h * s;
+
+end
+end
+
 %%% functions Ex. 1
 
 function [x, err, i] = newtonMethod(f, x0, tol, n_max, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % newtonMethod solves a system of nonlinear equations using the Newton-Raphson
-% method. It returns the solution x, the maximum error err, and the number 
+% method. It returns the solution x, the maximum error err, and the number
 % of iterations i.
 %
 %   Inputs:
@@ -288,7 +534,7 @@ while err >= tol && i < n_max
 
     % Update solution using Newton-Raphson method
     x = x0 - df \ f(x0);
-    
+
     % Update initial guess, error and iteration counter
     x0 = x;
     err = max(abs(f(x)));
@@ -303,92 +549,10 @@ end
 
 end
 
-%%% functions Ex. 2
-
-function [t_vect, x, fe] = RK(T, h, method, f, x0)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-% RK solves an ordinary differential equation (ODE) using a
-% general explicit Runge-Kutta method.
-%
-%   Inputs:
-%       - T: Time span of the simulation.
-%            Vector, [t_initial, t_final].
-%       - h: Step size.
-%            Positive scalar.
-%       - method: Order of the Runge-Kutta method (2 or 4).
-%            Scalar.
-%       - f: Function handle representing the ODE.
-%            Function handle, f(x, t), where x is the state vector and t is
-%            the current time.
-%       - x0: Initial state vector.
-%            Column vector.
-%
-%   Outputs:
-%       - t_vect: Time vector.
-%                 Column vector.
-%       - x: Solution matrix.
-%            Each row represents the state vector at a specific time.
-%       - fe: Number of function evaluations. Scalar
-%
-% define coefficients for RK1(Forward Euler), RK2 (Heun) and RK4
-
-arguments
-    T (2,1)
-    h (1,1)
-    method (1,1)
-    f 
-    x0 (1,:)
+%%% function Ex. 4
+function J = objFcn(x_an, t, h, f, x0, tol, alpha)
+f = f(h,alpha);
+n_steps = (t(2) - t(1))/h ;
+J =  max( abs(x_an-f^(n_steps)*x0) ) - tol;
 end
-
-    switch method
-        case 1
-            alpha = [0; 1];
-            beta = [0;1];
-        case 2 
-            alpha = [0; 1; 0];
-            beta = [0, 0; 1, 0; 0.5, 0.5];
-        case 4
-            alpha = [0; 0.5; 0.5; 1; 1];
-            beta = [0, 0, 0, 0;
-                    0.5, 0, 0, 0; 
-                    0, 0.5, 0, 0;
-                    0, 0, 1, 0;
-                    1/6, 1/3, 1/3, 1/6];
-        otherwise 
-            error('Choose a RK method between 1, 2 and 4');
-    end
-    
-    % initialize variables
-    K = zeros(1, method);
-    t_vect = T(1):h:T(end);
-    steps = length(t_vect);
-    x = [x0; zeros(steps-1, length(x0))];
-
-    % Integrate
-    for k = 1:steps-1
-
-        % Compute each Runge-Kutta stage
-        for i = 1:length(K)
-            y = (x(k, :) + h * sum(beta(i, :) * K(:)));
-            t = (t_vect(k) + alpha(i) * h);
-            K(i) = f(y, t);
-        end
-
-        % Update the solution using the Runge-Kutta stages and coefficients
-        s = 0;
-        for i = 1:method
-            s = s + beta(end, i) * K(i);
-        end
-        x(k+1, :) = x(k, :) + h * s;
-        
-    end
-end
-
-
-
-
-
-
-
 
