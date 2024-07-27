@@ -88,7 +88,7 @@ model EX2_2
     hTank=0.8,
     pAmbient=100000,
     useHeatPort=true,
-    level(start=1e-12, fixed=true))
+    level(start=0, fixed=true))
     annotation (Placement(transformation(extent={{120,26},{140,46}})));
   Modelica.Blocks.Logical.Hysteresis hysteresisT1(
     uLow=273.15 + 5,
@@ -184,8 +184,8 @@ equation
           146,46},{146,30},{141,30}}, color={0,0,127}));
   connect(switch3.y, prescribedHeatFlow1.Q_flow)
     annotation (Line(points={{209,74},{184,74}}, color={0,0,127}));
-  connect(prescribedHeatFlow1.port, openTank2.heatPort) annotation (Line(points
-        ={{164,74},{106,74},{106,26},{120,26}}, color={191,0,0}));
+  connect(prescribedHeatFlow1.port, openTank2.heatPort) annotation (Line(points=
+         {{164,74},{106,74},{106,26},{120,26}}, color={191,0,0}));
   connect(hysteresisT1.u, openTank.TTank) annotation (Line(points={{-208,48},{
           -216,48},{-216,30},{-221,30}}, color={0,0,127}));
   connect(openTank.flowPort, volumeFlow.flowPort_a)
