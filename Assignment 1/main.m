@@ -391,14 +391,99 @@ x_an = expmv( B,x0,t);
 % RK4
 [~, x_rk4] = RK([t0, tf], h, 4, @(x,t)B*x, x0);
 
-%IEX4
-
 % plot AN-RK4
 figure
+subplot(1,2,1)
+hold on
+grid on
+plot(t,x_an(1,:))
+plot(t,x_rk4(:,1),'--')
+xlabel('Time [s]')
+ylabel('x1')
+legend('Analytical','Numerical')
+subplot(1,2,2)
 hold on
 grid on
 plot(t,x_an(2,:))
-plot(t,x_rk4(:,2))
+plot(t,x_rk4(:,2),'--')
+xlabel('Time [s]')
+ylabel('x2')
+legend('Analytical','Numerical')
+
+%IEX4
+[t,x_iex4] = IEX4 (@(x,t) B*x,h,[t0 tf],x0);
+
+% plot AN-IEX4
+figure
+subplot(1,2,1)
+hold on
+grid on
+plot(t,x_an(1,:))
+plot(t,x_iex4(1,:),'--')
+xlabel('Time [s]')
+ylabel('x1')
+legend('Analytical','Numerical')
+subplot(1,2,2)
+hold on
+grid on
+plot(t,x_an(2,:))
+plot(t,x_iex4(2,:),'--')
+xlabel('Time [s]')
+ylabel('x2')
+legend('Analytical','Numerical')
+
+%iex4 error
+err = abs( ( x_an - x_iex4 ) ./ x_an );
+figure
+semilogy(t,err(1,:))
+hold on
+grid on
+xlabel('Time [s]')
+ylabel('Normalized error')
+%stability regions
+A = @(alpha) [0 1; -1 2*cos(alpha)];
+alpha = linspace(0,pi,300);
+lambda = zeros(length(alpha),1);
+h_rk4 = lambda;
+h_iex4 = lambda;
+
+% RK4 operator
+F_RK4 = @(h,alpha) h*A(alpha) + h^2/2*A(alpha)^2 + h^3/6*A(alpha)^3 + ...
+    h^4/24*A(alpha)^4  + eye( size(A(alpha),1 ) );
+%IEX4 operator
+F_IEX4=@(h,alpha) -(1/6)*(eye(size(A(alpha),1)) -(h)*A(alpha))^(-1)...
+    +4*(eye(size(A(alpha),1)) -(h/2)*A(alpha))^(-2) ...
+    -(27/2)*(eye(size(A(alpha),1)) -(h/3)*A(alpha))^(-3)...
+    +(32/3)*(eye(size(A(alpha),1)) -(h/4)*A(alpha))^(-4);
+
+syms h_sim real
+assume(h_sim>0)
+h_rk4(end) =  double( solve( max( abs( eig( F_RK4(h_sim,pi) ) ) )==1));
+h_iex4(1) = max(double( solve( max( abs( eig( F_IEX4(h_sim,0) ) ) )==1)));
+
+for i = 1:length(alpha)
+    lambda(i) = max( eig( A(alpha(i)) ) );
+end
+
+for i = 2:length(alpha)
+    h_iex4(i) = fzero(@(h) max(abs(eig(F_IEX4(h,alpha(i)))))-1,h_iex4(i-1));
+end
+for i = length(alpha)-1:-1:1
+    h_rk4(i) = fzero(@(h) max(abs(eig(F_RK4(h,alpha(i)))))-1,h_rk4(i+1));
+end
+
+figure
+hold on
+grid on
+plot([real(lambda.*h_rk4); nan; real(lambda.*h_rk4)],...
+    [imag(lambda.*h_rk4); nan; -imag(lambda.*h_rk4)],'DisplayName','RK4')
+plot([real(lambda.*h_iex4); nan; real(lambda.*h_iex4)],...
+    [imag(lambda.*h_iex4); nan; -imag(lambda.*h_iex4)],'DisplayName','IEX4')
+lambda_prob = h*eig(B);
+plot(real(lambda_prob),imag(lambda_prob),'.','MarkerSize',25,'DisplayName','h$\lambda$ of the problem')
+axis equal
+legend
+
 
 %% functions
 %%% general functions
@@ -583,3 +668,38 @@ n_steps = (t(2) - t(1))/h ;
 J =  max( abs(x_an-f^(n_steps)*x0) ) - tol;
 end
 
+%%% function Ex. 6
+
+function [t,x] = IEX4 (f,h,t,x0)
+
+alpha = [-1/6 4 -27/2 32/3];
+opt = optimset('Display','off');
+
+t = t(1):h:t(2);
+x = zeros(length(x0),length(t));
+x(:,1) = x0;
+
+for i = 2:length(t)
+    %1st predictor
+    k1 = fsolve(@(k) h*f(k, t(i)+h) - k  + x(:,i-1), x(:,i-1), opt );
+
+    %2nd predictor
+    k2a = fsolve(@(k) h/2*f(k, t(i-1)+h/2) - k  + x(:,i-1), x(:,i-1), opt );
+    k2 = fsolve(@(k) h/2*f(k, t(i-1)+h/2) - k  + k2a, x(:,i-1), opt );
+
+    %3rd predictor
+    k3a = fsolve(@(k) h/3*f(k, t(i-1)+h/3) - k  + x(:,i-1), x(:,i-1), opt );
+    k3b = fsolve(@(k) h/3*f(k, t(i-1)+h/3) - k  + k3a, x(:,i-1), opt );
+    k3 = fsolve(@(k) h/3*f(k, t(i-1)+h/3) - k  + k3b, x(:,i-1), opt );
+
+    %4th predictor
+    k4a = fsolve(@(k) h/4*f(k, t(i-1)+h/4) - k  + x(:,i-1), x(:,i-1), opt );
+    k4b = fsolve(@(k) h/4*f(k, t(i-1)+h/4) - k  + k4a, x(:,i-1), opt );
+    k4c = fsolve(@(k) h/4*f(k, t(i-1)+h/4) - k  + k4b, x(:,i-1), opt );
+    k4 = fsolve(@(k)  h/4*f(k, t(i-1)+h/4) - k  + k4c, x(:,i-1), opt );
+
+    % final sol
+    x(:,i) = alpha(1)*k1 + alpha(2)*k2 + alpha(3)*k3 + alpha(4)*k4;
+end
+
+end
