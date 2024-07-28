@@ -472,19 +472,41 @@ for i = length(alpha)-1:-1:1
     h_rk4(i) = fzero(@(h) max(abs(eig(F_RK4(h,alpha(i)))))-1,h_rk4(i+1));
 end
 
+%%
 figure
+c=colororder('gem');
 hold on
-grid on
-plot([real(lambda.*h_rk4); nan; real(lambda.*h_rk4)],...
-    [imag(lambda.*h_rk4); nan; -imag(lambda.*h_rk4)],'DisplayName','RK4')
+%IEX4
+iex4_stability_r = real(lambda.*h_iex4);
+iex4_stability_i = imag(lambda.*h_iex4);
+patch([-42 -42 15 15],[-10 10 10 -10],c(1,:),'FaceAlpha',0.2,'EdgeAlpha',0, ...
+    'DisplayName','IEX4 stability');
+patch(iex4_stability_r, iex4_stability_i, [1 1 1],'EdgeColor',c(1,:),...
+    'EdgeAlpha',0,'FaceAlpha',1,'HandleVisibility','off')
+patch(iex4_stability_r, -iex4_stability_i,[1 1 1],'EdgeColor',c(1,:),...
+     'EdgeAlpha',0,'FaceAlpha',1,'HandleVisibility','off')
 plot([real(lambda.*h_iex4); nan; real(lambda.*h_iex4)],...
     [imag(lambda.*h_iex4); nan; -imag(lambda.*h_iex4)],'DisplayName','IEX4')
+
+%RK4
+rk4_stability_r = real(lambda.*h_rk4);
+rk4_stability_i = imag(lambda.*h_rk4);
+patch(rk4_stability_r, rk4_stability_i, c(2,:),'EdgeColor',c(2,:),...
+    'EdgeAlpha',0,'FaceAlpha',0.2,'DisplayName','RK4 stability region')
+patch(rk4_stability_r, -rk4_stability_i, c(2,:),'EdgeColor',c(2,:),...
+     'EdgeAlpha',0,'FaceAlpha',0.2,'HandleVisibility','off')
+plot([rk4_stability_r; nan; rk4_stability_r], [rk4_stability_i; nan; -rk4_stability_i],'DisplayName','RK4')
+%Problem eigs
 lambda_prob = h*eig(B);
 plot(real(lambda_prob),imag(lambda_prob),'.','MarkerSize',25,'DisplayName','h$\lambda$ of the problem')
 axis equal
+grid off
+xlim([-40 14]); 
+ylim([-8 8])
+
 legend
 
-
+%% Ex 7
 %% functions
 %%% general functions
 
