@@ -226,10 +226,6 @@ fe_RK2 = fe_RK1;
 fe_RK4 = fe_RK1;
 lambda = zeros(length(alpha_vect),1);
 
-h0_vec_RK1 = [1e-3, 1e-4, 1e-4, 1e-4];
-h0_vec_RK2 = [0.01, 0.1, 0.2, 0.002];
-h0_vec_RK4 = [0.7, 0.7, 0.4, 0.7];
-
 for i = 1:length(alpha_vect)
     %analitical solution
     x_an = expmv( A(alpha_vect(i)),x0,tf);
@@ -238,28 +234,17 @@ for i = 1:length(alpha_vect)
 
     for j = 1:length(tol_vect)
 
-        if i~=1
-
-            h1_0 = h_RK1(i-1,j);
-            h2_0 =  h_RK2(i-1,j);
-            h4_0 =  h_RK4(i-1,j);
-        else
-            h1_0 = tol_vect(j);%h0_vec_RK1(j);
-            h2_0 =  h0_vec_RK2(j);
-            h4_0 =  h0_vec_RK4(j);
-        end
-
-        %%% FZERO NON FUNZIONA PER RK 2 E 4
-        h_RK1(i,j)= fzero(@(h) objFcn(x_an, t, h, F_RK1, x0, tol_vect(j), alpha_vect(i)) ,h1_0);
-        h_RK2(i,j) = fzero(@(h) objFcn(x_an, t, h, F_RK2, x0, tol_vect(j), alpha_vect(i)) ,[tol_vect(j) tf]);
-        h_RK4(i,j) = fzero(@(h) objFcn(x_an, t, h, F_RK4, x0, tol_vect(j), alpha_vect(i)) ,[tol_vect(j) tf]);
+        opt = optimset('TolFun',1e-12);
+        h_RK1(i,j)= fzero(@(h) objFcn(x_an, t, h, F_RK1, x0, tol_vect(j), alpha_vect(i)) ,[tol_vect(j)/2 tf], opt);
+        h_RK2(i,j) = fzero(@(h) objFcn(x_an, t, h, F_RK2, x0, tol_vect(j), alpha_vect(i)) ,[tol_vect(j)/2 tf], opt);
+        h_RK4(i,j) = fzero(@(h) objFcn(x_an, t, h, F_RK4, x0, tol_vect(j), alpha_vect(i)) ,[tol_vect(j)/2 tf], opt);
 
         % function evaluations vs alpha
         if i == length(alpha_vect)
             fun = @(x,t) A(alpha_vect(i))*x;
             [~, ~, fe_RK1(j)] = RK([t0, tf], h_RK1(i,j), 1, fun, x0);
             [~, ~, fe_RK2(j)] = RK([t0, tf], h_RK2(i,j), 2, fun, x0);
-            % [~, ~, fe_RK4(j)] = RK([t0, tf], h_RK4(i,j), 4, fun, x0);
+            [~, ~, fe_RK4(j)] = RK([t0, tf], h_RK4(i,j), 4, fun, x0);
         end
 
     end
@@ -267,20 +252,59 @@ end
 
 %plot fe vs tol
 figure
-loglog(tol_vect, fe_RK1,'DisplayName','RK1')
-hold on
-loglog(tol_vect, fe_RK2,'DisplayName','RK2')
-loglog(tol_vect, fe_RK4,'DisplayName','RK4')
-% plots h-lambda todo
-figure
+loglog(tol_vect, fe_RK1,'-o','DisplayName','RK1')
 hold on
 grid on
-plot([real(h_RK1(:,1).*lambda) real(h_RK1(:,1).*lambda)], [imag(h_RK1(:,1).*lambda) -imag(h_RK1(:,1).*lambda)] )
-plot([real(h_RK2(:,1).*lambda) real(h_RK2(:,1).*lambda)], [imag(h_RK2(:,1).*lambda) -imag(h_RK2(:,1).*lambda)] )
-plot([real(h_RK4(:,1).*lambda) real(h_RK4(:,1).*lambda)], [imag(h_RK4(:,1).*lambda) -imag(h_RK4(:,1).*lambda)] )
+loglog(tol_vect, fe_RK2,'-o','DisplayName','RK2')
+loglog(tol_vect, fe_RK4,'-o','DisplayName','RK4')
+legend
+xlabel('Tollerance')
+ylabel('Function evaluations')
 
+% plots h-lambda
+figure %RK1
+subplot(1,2,1)
+hold on
+grid on
+plot([real(h_RK1(:,1).*lambda); nan; real(h_RK1(:,1).*lambda)], [imag(h_RK1(:,1).*lambda); nan; -imag(h_RK1(:,1).*lambda)] )
+plot([real(h_RK1(:,2).*lambda); nan; real(h_RK1(:,2).*lambda)], [imag(h_RK1(:,2).*lambda); nan; -imag(h_RK1(:,2).*lambda)] )
+xlabel('Re\{h$\lambda$\}')
+ylabel('Im\{h$\lambda$\}')
+axis equal
+legend("tol = " + num2str(tol_vect(1:2)))
+subplot(1,2,2)
+hold on
+grid on
+plot([real(h_RK1(:,3).*lambda); nan; real(h_RK1(:,3).*lambda)], [imag(h_RK1(:,3).*lambda); nan; -imag(h_RK1(:,3).*lambda)] )
+plot([real(h_RK1(:,4).*lambda); nan; real(h_RK1(:,4).*lambda)], [imag(h_RK1(:,4).*lambda); nan; -imag(h_RK1(:,4).*lambda)] )
+xlabel('Re\{h$\lambda$\}')
+ylabel('Im\{h$\lambda$\}')
+axis equal
+legend("tol = " + num2str(tol_vect(3:4)))
 
+figure %RK2
+hold on
+grid on
+plot([real(h_RK2(:,1).*lambda); nan; real(h_RK2(:,1).*lambda)], [imag(h_RK2(:,1).*lambda); nan; -imag(h_RK2(:,1).*lambda)] )
+plot([real(h_RK2(:,2).*lambda); nan; real(h_RK2(:,2).*lambda)], [imag(h_RK2(:,2).*lambda); nan; -imag(h_RK2(:,2).*lambda)] )
+plot([real(h_RK2(:,3).*lambda); nan; real(h_RK2(:,3).*lambda)], [imag(h_RK2(:,3).*lambda); nan; -imag(h_RK2(:,3).*lambda)] )
+plot([real(h_RK2(:,4).*lambda); nan; real(h_RK2(:,4).*lambda)], [imag(h_RK2(:,4).*lambda); nan; -imag(h_RK2(:,4).*lambda)] )
+xlabel('Re\{h$\lambda$\}')
+ylabel('Im\{h$\lambda$\}')
+axis equal
+legend("tol = " + num2str(tol_vect))
 
+figure %RK4
+hold on
+grid on
+plot([real(h_RK4(:,1).*lambda); nan; real(h_RK4(:,1).*lambda)], [imag(h_RK4(:,1).*lambda); nan; -imag(h_RK4(:,1).*lambda)] )
+plot([real(h_RK4(:,2).*lambda); nan; real(h_RK4(:,2).*lambda)], [imag(h_RK4(:,2).*lambda); nan; -imag(h_RK4(:,2).*lambda)] )
+plot([real(h_RK4(:,3).*lambda); nan; real(h_RK4(:,3).*lambda)], [imag(h_RK4(:,3).*lambda); nan; -imag(h_RK4(:,3).*lambda)] )
+plot([real(h_RK4(:,4).*lambda); nan; real(h_RK4(:,4).*lambda)], [imag(h_RK4(:,4).*lambda); nan; -imag(h_RK4(:,4).*lambda)] )
+xlabel('Re\{h$\lambda$\}')
+ylabel('Im\{h$\lambda$\}')
+axis equal
+legend("tol = " + num2str(tol_vect))
 %% Ex 5
 clearvars; close all; clc;
 
@@ -367,6 +391,9 @@ x_an = expmv( B,x0,t);
 % RK4
 [~, x_rk4] = RK([t0, tf], h, 4, @(x,t)B*x, x0);
 
+%IEX4
+
+% plot AN-RK4
 figure
 hold on
 grid on
