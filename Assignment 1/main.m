@@ -438,13 +438,15 @@ legend('Analytical','Numerical')
 
 %iex4 error
 err = abs( ( x_an - x_iex4 ) ./ x_an );
-max(abs(X_AN-X_IEX))./max(abs(X_AN))
 figure
 semilogy(t,err(1,:))
 hold on
+semilogy(t,err(2,:))
 grid on
 xlabel('Time [s]')
 ylabel('Normalized error')
+legend('$x_1$','$x_2$')
+
 %stability regions
 A = @(alpha) [0 1; -1 2*cos(alpha)];
 alpha = linspace(0,pi,300);
