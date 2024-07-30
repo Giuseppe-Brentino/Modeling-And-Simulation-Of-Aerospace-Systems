@@ -198,6 +198,7 @@ plot([real(h_RK4.*lambda) real(h_RK4.*lambda)], [imag(h_RK4.*lambda) -imag(h_RK4
 axis equal
 xlabel('Re(h$\lambda$)')
 ylabel('Im(h$\lambda$)')
+legend('RK2','','RK4')
 
 %% Ex 4
 clearvars; close all; clc;
@@ -268,8 +269,8 @@ hold on
 grid on
 plot([real(h_RK1(:,1).*lambda); nan; real(h_RK1(:,1).*lambda)], [imag(h_RK1(:,1).*lambda); nan; -imag(h_RK1(:,1).*lambda)] )
 plot([real(h_RK1(:,2).*lambda); nan; real(h_RK1(:,2).*lambda)], [imag(h_RK1(:,2).*lambda); nan; -imag(h_RK1(:,2).*lambda)] )
-xlabel('Re\{h$\lambda$\}')
-ylabel('Im\{h$\lambda$\}')
+xlabel('Re(h$\lambda$)')
+ylabel('Im(h$\lambda$)')
 axis equal
 legend("tol = " + num2str(tol_vect(1:2)))
 subplot(1,2,2)
@@ -277,8 +278,8 @@ hold on
 grid on
 plot([real(h_RK1(:,3).*lambda); nan; real(h_RK1(:,3).*lambda)], [imag(h_RK1(:,3).*lambda); nan; -imag(h_RK1(:,3).*lambda)] )
 plot([real(h_RK1(:,4).*lambda); nan; real(h_RK1(:,4).*lambda)], [imag(h_RK1(:,4).*lambda); nan; -imag(h_RK1(:,4).*lambda)] )
-xlabel('Re\{h$\lambda$\}')
-ylabel('Im\{h$\lambda$\}')
+xlabel('Re(h$\lambda$)')
+ylabel('Im(h$\lambda$)')
 axis equal
 legend("tol = " + num2str(tol_vect(3:4)))
 
@@ -289,8 +290,8 @@ plot([real(h_RK2(:,1).*lambda); nan; real(h_RK2(:,1).*lambda)], [imag(h_RK2(:,1)
 plot([real(h_RK2(:,2).*lambda); nan; real(h_RK2(:,2).*lambda)], [imag(h_RK2(:,2).*lambda); nan; -imag(h_RK2(:,2).*lambda)] )
 plot([real(h_RK2(:,3).*lambda); nan; real(h_RK2(:,3).*lambda)], [imag(h_RK2(:,3).*lambda); nan; -imag(h_RK2(:,3).*lambda)] )
 plot([real(h_RK2(:,4).*lambda); nan; real(h_RK2(:,4).*lambda)], [imag(h_RK2(:,4).*lambda); nan; -imag(h_RK2(:,4).*lambda)] )
-xlabel('Re\{h$\lambda$\}')
-ylabel('Im\{h$\lambda$\}')
+xlabel('Re(h$\lambda$)')
+ylabel('Im(h$\lambda$)')
 axis equal
 legend("tol = " + num2str(tol_vect))
 
@@ -301,10 +302,11 @@ plot([real(h_RK4(:,1).*lambda); nan; real(h_RK4(:,1).*lambda)], [imag(h_RK4(:,1)
 plot([real(h_RK4(:,2).*lambda); nan; real(h_RK4(:,2).*lambda)], [imag(h_RK4(:,2).*lambda); nan; -imag(h_RK4(:,2).*lambda)] )
 plot([real(h_RK4(:,3).*lambda); nan; real(h_RK4(:,3).*lambda)], [imag(h_RK4(:,3).*lambda); nan; -imag(h_RK4(:,3).*lambda)] )
 plot([real(h_RK4(:,4).*lambda); nan; real(h_RK4(:,4).*lambda)], [imag(h_RK4(:,4).*lambda); nan; -imag(h_RK4(:,4).*lambda)] )
-xlabel('Re\{h$\lambda$\}')
-ylabel('Im\{h$\lambda$\}')
+xlabel('Re(h$\lambda$)')
+ylabel('Im(h$\lambda$)')
 axis equal
 legend("tol = " + num2str(tol_vect))
+
 %% Ex 5
 clearvars; close all; clc;
 
@@ -371,6 +373,8 @@ for j = 1:length(theta)
     plot( real_part, imag_part,'DisplayName',"$BI2_{"+ num2str(theta(j)) + "}$",'Color',c(j,:));
 end
 legend
+xlabel('Re(h$\lambda$)')
+ylabel('Im(h$\lambda$)')
 
 %%NOTA: PER THETA > 0.5 LA STABILITY REGION è DENTRO I CERCHI, PER THETA<0.5 E FUORI
 
@@ -434,6 +438,7 @@ legend('Analytical','Numerical')
 
 %iex4 error
 err = abs( ( x_an - x_iex4 ) ./ x_an );
+max(abs(X_AN-X_IEX))./max(abs(X_AN))
 figure
 semilogy(t,err(1,:))
 hold on
@@ -472,7 +477,6 @@ for i = length(alpha)-1:-1:1
     h_rk4(i) = fzero(@(h) max(abs(eig(F_RK4(h,alpha(i)))))-1,h_rk4(i+1));
 end
 
-%%
 figure
 c=colororder('gem');
 hold on
@@ -484,7 +488,7 @@ patch([-42 -42 15 15],[-10 10 10 -10],c(1,:),'FaceAlpha',0.2,'EdgeAlpha',0, ...
 patch(iex4_stability_r, iex4_stability_i, [1 1 1],'EdgeColor',c(1,:),...
     'EdgeAlpha',0,'FaceAlpha',1,'HandleVisibility','off')
 patch(iex4_stability_r, -iex4_stability_i,[1 1 1],'EdgeColor',c(1,:),...
-     'EdgeAlpha',0,'FaceAlpha',1,'HandleVisibility','off')
+    'EdgeAlpha',0,'FaceAlpha',1,'HandleVisibility','off')
 plot([real(lambda.*h_iex4); nan; real(lambda.*h_iex4)],...
     [imag(lambda.*h_iex4); nan; -imag(lambda.*h_iex4)],'DisplayName','IEX4')
 
@@ -494,19 +498,102 @@ rk4_stability_i = imag(lambda.*h_rk4);
 patch(rk4_stability_r, rk4_stability_i, c(2,:),'EdgeColor',c(2,:),...
     'EdgeAlpha',0,'FaceAlpha',0.2,'DisplayName','RK4 stability region')
 patch(rk4_stability_r, -rk4_stability_i, c(2,:),'EdgeColor',c(2,:),...
-     'EdgeAlpha',0,'FaceAlpha',0.2,'HandleVisibility','off')
+    'EdgeAlpha',0,'FaceAlpha',0.2,'HandleVisibility','off')
 plot([rk4_stability_r; nan; rk4_stability_r], [rk4_stability_i; nan; -rk4_stability_i],'DisplayName','RK4')
 %Problem eigs
 lambda_prob = h*eig(B);
 plot(real(lambda_prob),imag(lambda_prob),'.','MarkerSize',25,'DisplayName','h$\lambda$ of the problem')
 axis equal
 grid off
-xlim([-40 14]); 
+xlim([-40 14]);
 ylim([-8 8])
 
 legend
 
 %% Ex 7
+clearvars; close all; clc;
+
+%data
+h = 0.1;
+t0 = 0;
+tf = 3;
+x0 = [1;1];
+
+
+% compute eigenvalues of the problem
+syms t real
+assume(t>=0);
+syms x(t)
+% compute x1 analytically
+x1_sym = dsolve(diff(x,1,t)==-(5/2)*(1+8*sin(t))*x(t),x(0)==1);
+
+% Linear formulation of the problem for each t
+F = [-(5/2)*(1+8*sin(t)), 0;
+    1, (1-x1_sym)];
+
+time = t0:h:tf;
+lambda_fun = matlabFunction( eig(F) );
+lambda = lambda_fun(time);
+
+figure
+hold on
+grid on
+plot(time,lambda(1,:), time,lambda(2,:))
+xlabel('Time [s]')
+ylabel('$\lambda$')
+legend('$\lambda_1$', '$\lambda_2$')
+
+figure
+c=colororder('gem');
+hold on
+grid on
+plot(time,h*lambda(1,:),'DisplayName','$h\lambda_1$')
+plot(time,h*lambda(2,:),'DisplayName','$h\lambda_2$')
+xlabel('Time [s]')
+ylabel('$h\lambda$')
+yline(-0.5495,'--','LineWidth',1.5,'Color',c(3,:),'DisplayName','AB3 min $h\lambda$')
+yline(-6,'--','LineWidth',1.5,'Color',c(4,:),'DisplayName','AM3 min $h\lambda$')
+yline(-1.7327,'--','LineWidth',1.5,'Color',c(5,:),'DisplayName','ABM3 min $h\lambda$')
+yline(6.6434,'--','LineWidth',1.5,'Color',c(6,:),'DisplayName','BDF3 max $h\lambda$')
+ylim([-7 7])
+xlim([0 3])
+legend
+
+
+% AB3
+[time,x_AB3] = AB3(@f_ex7,[t0,tf],x0,h);
+figure
+subplot(1,2,1)
+plot(time,x_AB3(1,:))
+subplot(1,2,2)
+plot(time,x_AB3(2,:))
+
+%AM3
+[time,x_AM3] = AM3(@f_ex7,[t0,tf],x0,h);
+figure
+subplot(1,2,1)
+plot(time,x_AM3(1,:))
+subplot(1,2,2)
+plot(time,x_AM3(2,:))
+
+
+%ABM3
+[time,x_ABM3] = ABM3(@f_ex7,[t0,tf],x0,h);
+figure
+subplot(1,2,1)
+plot(time,x_ABM3(1,:))
+subplot(1,2,2)
+plot(time,x_ABM3(2,:))
+
+%BDF3
+
+[time,x_BDF3] = BDF3(@f_ex7,[t0,tf],x0,h);
+figure
+subplot(1,2,1)
+plot(time,x_BDF3(1,:))
+subplot(1,2,2)
+plot(time,x_BDF3(2,:))
+
 %% functions
 %%% general functions
 
@@ -599,14 +686,16 @@ for k = 1:steps-1
     % Compute each Runge-Kutta stage
     for i = 1:size(K,2)
         if i~=1
-            y = x(k, :) + h * sum(beta(i, :) .* K(:,i),2)';
+            y = x(k, :) + h * sum(beta(i, :) .* K(:,i-1),2)';
         else
             y = x(k, :);
         end
         t = (t_vect(k) + alpha(i) * h);
         K(:,i) = f(y', t);
         fe = fe+1;
+
     end
+
 
     % Update the solution using the Runge-Kutta stages and coefficients
     s = zeros(1,length(x0));
@@ -618,7 +707,7 @@ for k = 1:steps-1
 end
 end
 
-%%% functions Ex. 1
+%%% function Ex. 1
 
 function [x, err, i] = newtonMethod(f, x0, tol, n_max, varargin)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -724,4 +813,96 @@ for i = 2:length(t)
     x(:,i) = alpha(1)*k1 + alpha(2)*k2 + alpha(3)*k3 + alpha(4)*k4;
 end
 
+end
+
+%%% functions Ex. 7
+
+function dx = f_ex7 (x,t)
+
+dx = [-5/2 * ( 1+8*sin(t) ) * x(1);
+    ( 1-x(1) )*x(2) + x(1)];
+end
+
+function [t,x] = AB3(f,time,x0,h)
+t0 = time(1);
+tf = time(2);
+t = t0:h:tf;
+x = zeros(length(x0),length(time));
+
+x(:,1) = x0;
+for k = 1:length(t)-1
+    %use RK4 for startup
+    if k < 3
+        [~, x_t, ~] = RK([t(k), t(k)+h], h, 4, f, x(:,k));
+        x(:,k+1) = x_t(end,:)';
+    else
+        x(:,k+1) = x(:,k) + h/12 * ( 23*f(x(:,k),t(k)) -16*f(x(:,k-1),t(k-1))...
+            +5*f(x(:,k-2),t(k-2)) );
+    end
+end
+
+end
+
+function [t,x] = AM3(f,time,x0,h)
+t0 = time(1);
+tf = time(2);
+t = t0:h:tf;
+x = zeros(length(x0),length(time));
+opt = optimset('Display','off');
+x(:,1) = x0;
+for k = 1:length(t)-1
+    %use RK4 for startup
+    if k < 2
+        [~, x_t, ~] = RK([t(k), t(k)+h], h, 4, f, x(:,k));
+        x(:,k+1) = x_t(end,:)';
+    else
+        fun = @(y) x(:,k) + h/12 * ( 5*f(y,t(k+1)) +8*f(x(:,k),t(k)) -f(x(:,k-1),t(k-1)) ) -y;
+        x(:,k+1) = fsolve(fun,x(:,k),opt);
+    end
+end
+
+end
+
+function [t,x] = ABM3(f,time,x0,h)
+t0 = time(1);
+tf = time(2);
+t = t0:h:tf;
+x = zeros(length(x0),length(time));
+x(:,1) = x0;
+
+for k = 1:length(t)-1
+    % startup with rk4
+    if k < 3
+        [~, x_t, ~] = RK([t(k), t(k)+h], h, 4, f, x(:,k));
+        x(:,k+1) = x_t(end,:)';
+    else
+        % Predictor (AB3)
+        x(:,k+1) = x(:,k) + h/12 * ( 23*f(x(:,k),t(k)) -16*f(x(:,k-1),t(k-1))...
+            +5*f(x(:,k-2),t(k-2)) );
+        % Corrector (AM3)
+        x(:,k+1) = x(:,k) + h/12*( 5*f(x(:,k+1),t(k+1)) +8*f(x(:,k),t(k)) - f(x(:,k-1),t(k-1)) );
+    end
+
+end
+
+end
+
+
+function [t,x] = BDF3(f,time,x0,h)
+t0 = time(1);
+tf = time(2);
+t = t0:h:tf;
+x = zeros(length(x0),length(time));
+opt = optimset('Display','off');
+x(:,1) = x0;
+for k = 1:length(t)-1
+    %use RK4 for startup
+    if k < 3
+        [~, x_t, ~] = RK([t(k), t(k)+h], h, 4, f, x(:,k));
+        x(:,k+1) = x_t(end,:)';
+    else
+        fun = @(y) 18/11*x(:,k) -9/11*x(:,k-1) +2/11*x(:,k-2) + 6/11*h*f(y,t(k+1)) - y;
+        x(:,k+1) = fsolve(fun,x(:,k),opt);
+    end
+end
 end
