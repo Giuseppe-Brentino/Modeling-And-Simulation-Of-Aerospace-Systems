@@ -57,8 +57,8 @@ figure()
 hold on
 grid on
 % Plot zero contours of individual functions
-plot(f1, x2, 'DisplayName', 'Zeros of $\textbf{f}_1$');
-plot(x1, f2, 'DisplayName', 'Zeros of $\textbf{f}_2$');
+plot(f1, x2, 'DisplayName', 'Zeros of $f_1$');
+plot(x1, f2, 'DisplayName', 'Zeros of $f_2$');
 % Plot found solutions and initial guesses
 plot(analytic.x(1, :), analytic.x(2, :), 'o', 'DisplayName', 'Zeros of \textbf{f}', ...
     'MarkerFaceColor', "#EDB120")
@@ -128,16 +128,18 @@ end
 
 % Relative error over time
 figure()
-grid on
-for i = 1:h_l
-    subplot(2, 2, i)
-    semilogy(T{i,1}, rel_error{i,1}, 'DisplayName', 'RK2')
-    hold on
-    semilogy(T{i,1}, rel_error{i,2}, 'DisplayName', 'RK4')
-    xlabel('Time [s]')
-    ylabel('Relative error [-]')
-    legend
-    title("h = " + num2str(h_vect(i)));
+for j = 1:2
+    subplot(1, 2, j)
+    grid minor
+    for i = 1:h_l
+
+        semilogy(T{i,1}, rel_error{i,j}, 'DisplayName',"h = " + num2str(h_vect(i)))
+        hold on
+        % semilogy(T{i,1}, rel_error{i,2}, 'DisplayName', 'RK4')
+        xlabel('Time [s]')
+        ylabel('Relative error [-]')
+        legend
+    end
 end
 
 % Time vs. maximum relative error
@@ -376,8 +378,6 @@ legend
 xlabel('Re(h$\lambda$)')
 ylabel('Im(h$\lambda$)')
 
-%%NOTA: PER THETA > 0.5 LA STABILITY REGION è DENTRO I CERCHI, PER THETA<0.5 E FUORI
-
 %% Ex 6
 clearvars; close all; clc;
 
@@ -403,7 +403,7 @@ grid on
 plot(t,x_an(1,:))
 plot(t,x_rk4(:,1),'--')
 xlabel('Time [s]')
-ylabel('x1')
+ylabel('$x_1$')
 legend('Analytical','Numerical')
 subplot(1,2,2)
 hold on
@@ -411,7 +411,7 @@ grid on
 plot(t,x_an(2,:))
 plot(t,x_rk4(:,2),'--')
 xlabel('Time [s]')
-ylabel('x2')
+ylabel('$x_2$')
 legend('Analytical','Numerical')
 
 %IEX4
@@ -425,7 +425,7 @@ grid on
 plot(t,x_an(1,:))
 plot(t,x_iex4(1,:),'--')
 xlabel('Time [s]')
-ylabel('x1')
+ylabel('$x_1$')
 legend('Analytical','Numerical')
 subplot(1,2,2)
 hold on
@@ -433,7 +433,7 @@ grid on
 plot(t,x_an(2,:))
 plot(t,x_iex4(2,:),'--')
 xlabel('Time [s]')
-ylabel('x2')
+ylabel('$x_2$')
 legend('Analytical','Numerical')
 
 %iex4 error
@@ -509,7 +509,8 @@ axis equal
 grid off
 xlim([-40 14]);
 ylim([-8 8])
-
+xlabel('Re($h\lambda$)')
+ylabel('Im($h\lambda$)')
 legend
 
 %% Ex 7
@@ -567,25 +568,36 @@ legend
 figure
 subplot(1,2,1)
 plot(time,x_AB3(1,:))
+ylabel('$x_1$')
+xlabel('Time [s]')
 subplot(1,2,2)
 plot(time,x_AB3(2,:))
+ylabel('$x_2$')
+xlabel('Time [s]')
 
 %AM3
 [time,x_AM3] = AM3(@f_ex7,[t0,tf],x0,h);
 figure
 subplot(1,2,1)
 plot(time,x_AM3(1,:))
+ylabel('$x_1$')
+xlabel('Time [s]')
 subplot(1,2,2)
 plot(time,x_AM3(2,:))
-
+ylabel('$x_2$')
+xlabel('Time [s]')
 
 %ABM3
 [time,x_ABM3] = ABM3(@f_ex7,[t0,tf],x0,h);
 figure
 subplot(1,2,1)
 plot(time,x_ABM3(1,:))
+ylabel('$x_1$')
+xlabel('Time [s]')
 subplot(1,2,2)
 plot(time,x_ABM3(2,:))
+ylabel('$x_2$')
+xlabel('Time [s]')
 
 %BDF3
 
@@ -593,9 +605,12 @@ plot(time,x_ABM3(2,:))
 figure
 subplot(1,2,1)
 plot(time,x_BDF3(1,:))
+ylabel('$x_1$')
+xlabel('Time [s]')
 subplot(1,2,2)
 plot(time,x_BDF3(2,:))
-
+ylabel('$x_2$')
+xlabel('Time [s]')
 %% functions
 %%% general functions
 
@@ -658,16 +673,15 @@ arguments
 end
 
 switch method
-    case 1
+    case 1 %RK1
         alpha = [0; 1];
-        beta = [0;1];
-    case 2
+        beta = 1;
+    case 2 %RK2
         alpha = [0; 1; 0];
-        beta = [0, 0; 1, 0; 0.5, 0.5];
-    case 4
+        beta = [1, 0; 0.5, 0.5];
+    case 4 %RK4
         alpha = [0; 0.5; 0.5; 1; 1];
-        beta = [0, 0, 0, 0;
-            0.5, 0, 0, 0;
+        beta = [0.5, 0, 0, 0;
             0, 0.5, 0, 0;
             0, 0, 1, 0;
             1/6, 1/3, 1/3, 1/6];
@@ -688,7 +702,7 @@ for k = 1:steps-1
     % Compute each Runge-Kutta stage
     for i = 1:size(K,2)
         if i~=1
-            y = x(k, :) + h * sum(beta(i, :) .* K(:,i-1),2)';
+            y = x(k, :) + h * sum(beta(i-1, :) .* K(:,i-1),2)';
         else
             y = x(k, :);
         end
@@ -776,19 +790,67 @@ end
 
 %%% function Ex. 4
 function J = objFcn(x_an, t, h, f, x0, tol, alpha)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% objFcn - Objective function to compute the difference between analytical
+%  and numerical solutions.
+%
+% Inputs:
+%   x_an  - Analytical solution vector at final time
+%   t     - Vector containing the start and end times [t_start, t_end]
+%   h     - Time step size
+%   f     - Function handle to compute the numerical solution
+%   x0    - Initial state vector
+%   tol   - Tolerance level for the error
+%   alpha - Parameter for the function f
+%
+% Outputs:
+%   J     - Objective function value (max absolute error minus tolerance)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% compute the metohod's operator for linear systems for given h, alpha
 f = f(h,alpha);
+% compute number of steps
 n_steps = (t(2) - t(1))/h ;
-J =  max( abs(x_an-f^(n_steps)*x0) ) - tol;
+
+% Compute the numerical solution at the final time
+x_num = f^n_steps * x0;
+
+% Calculate the infinity norm of the difference between the analytical and numerical solutions
+max_error = max(abs(x_an - x_num));
+
+% Compute the objective function value as the maximum error minus the tolerance
+J = max_error - tol;
 end
 
 %%% function Ex. 6
 
 function [t,x] = IEX4 (f,h,t,x0)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% IEX4 - Solves an ODE using the fourth-order Implicit Extrapolation method.
+%
+% Inputs:
+%   f     - Function handle representing the ODE (dx/dt = f(x, t))
+%   h     - Step size
+%   time  - 2-element vector [t0 tf] specifying the start and end times
+%   x0    - Initial state vector
+%
+% Outputs:
+%   t     - Time vector
+%   x     - State vector at each time step
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% solver parameter
 alpha = [-1/6 4 -27/2 32/3];
 opt = optimset('Display','off');
 
+%time vector
 t = t(1):h:t(2);
+
+% initialize state variables
 x = zeros(length(x0),length(t));
 x(:,1) = x0;
 
@@ -811,33 +873,63 @@ for i = 2:length(t)
     k4c = fsolve(@(k) h/4*f(k, t(i-1)+h/4) - k  + k4b, x(:,i-1), opt );
     k4 = fsolve(@(k)  h/4*f(k, t(i-1)+h/4) - k  + k4c, x(:,i-1), opt );
 
-    % final sol
+    % final solution
     x(:,i) = alpha(1)*k1 + alpha(2)*k2 + alpha(3)*k3 + alpha(4)*k4;
 end
-
 end
 
 %%% functions Ex. 7
 
-function dx = f_ex7 (x,t)
+function dx = f_ex7(x, t)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% f_ex7 - State-space representation of the system dynamics.
+%
+% Inputs:
+%   x - State vector [x1; x2]
+%   t - Time scalar
+%
+% Outputs:
+%   dx - Derivative of the state vector
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-dx = [-5/2 * ( 1+8*sin(t) ) * x(1);
-    ( 1-x(1) )*x(2) + x(1)];
+% Compute the derivative of the state vector
+dx = [-5/2 * (1 + 8 * sin(t)) * x(1);  % Derivative of x1
+      (1 - x(1)) * x(2) + x(1)];       % Derivative of x2
 end
 
 function [t,x] = AB3(f,time,x0,h)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% AB3 - Solves an ODE using the third-order Adams-Bashforth method.
+%
+% Inputs:
+%   f     - Function handle representing the ODE (dx/dt = f(x, t))
+%   time  - 2-element vector [t0 tf] specifying the start and end times
+%   x0    - Initial state vector
+%   h     - Step size
+%
+% Outputs:
+%   t     - Time vector
+%   x     - State vector at each time step
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% define time vector
 t0 = time(1);
 tf = time(2);
 t = t0:h:tf;
-x = zeros(length(x0),length(time));
 
+% initialize state variables
+x = zeros(length(x0),length(time));
 x(:,1) = x0;
+
 for k = 1:length(t)-1
-    %use RK4 for startup
-    if k < 3
+   
+    if k < 3  % use RK4 for startup
         [~, x_t, ~] = RK([t(k), t(k)+h], h, 4, f, x(:,k));
         x(:,k+1) = x_t(end,:)';
-    else
+    else % solve using the AB3 method
         x(:,k+1) = x(:,k) + h/12 * ( 23*f(x(:,k),t(k)) -16*f(x(:,k-1),t(k-1))...
             +5*f(x(:,k-2),t(k-2)) );
     end
@@ -846,18 +938,39 @@ end
 end
 
 function [t,x] = AM3(f,time,x0,h)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% AM3 - Solves an ODE using the third-order Adams-Moulton method.
+%
+% Inputs:
+%   f     - Function handle representing the ODE (dx/dt = f(x, t))
+%   time  - 2-element vector [t0 tf] specifying the start and end times
+%   x0    - Initial state vector
+%   h     - Step size
+%
+% Outputs:
+%   t     - Time vector
+%   x     - State vector at each time step
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% define time vector
 t0 = time(1);
 tf = time(2);
 t = t0:h:tf;
+
+% initialize state variables
 x = zeros(length(x0),length(time));
-opt = optimset('Display','off');
 x(:,1) = x0;
+
+%options for fsolve
+opt = optimset('Display','off');
+
 for k = 1:length(t)-1
-    %use RK4 for startup
-    if k < 2
+    if k < 2 % use RK4 for startup
         [~, x_t, ~] = RK([t(k), t(k)+h], h, 4, f, x(:,k));
         x(:,k+1) = x_t(end,:)';
-    else
+    else % solve using the AM3 method
         fun = @(y) x(:,k) + h/12 * ( 5*f(y,t(k+1)) +8*f(x(:,k),t(k)) -f(x(:,k-1),t(k-1)) ) -y;
         x(:,k+1) = fsolve(fun,x(:,k),opt);
     end
@@ -866,43 +979,80 @@ end
 end
 
 function [t,x] = ABM3(f,time,x0,h)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% AM3 - Solves an ODE using the third-order Adams-Bashford-Moulton method.
+%
+% Inputs:
+%   f     - Function handle representing the ODE (dx/dt = f(x, t))
+%   time  - 2-element vector [t0 tf] specifying the start and end times
+%   x0    - Initial state vector
+%   h     - Step size
+%
+% Outputs:
+%   t     - Time vector
+%   x     - State vector at each time step
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% define time vector
 t0 = time(1);
 tf = time(2);
 t = t0:h:tf;
+
+% initialize state variables
 x = zeros(length(x0),length(time));
 x(:,1) = x0;
 
-for k = 1:length(t)-1
-    % startup with rk4
-    if k < 3
+for k = 1:length(t)-1    
+    if k < 3 % use RK4 for startup
         [~, x_t, ~] = RK([t(k), t(k)+h], h, 4, f, x(:,k));
         x(:,k+1) = x_t(end,:)';
-    else
+    else % solve using the ABM3 method       
         % Predictor (AB3)
         x(:,k+1) = x(:,k) + h/12 * ( 23*f(x(:,k),t(k)) -16*f(x(:,k-1),t(k-1))...
             +5*f(x(:,k-2),t(k-2)) );
         % Corrector (AM3)
         x(:,k+1) = x(:,k) + h/12*( 5*f(x(:,k+1),t(k+1)) +8*f(x(:,k),t(k)) - f(x(:,k-1),t(k-1)) );
     end
-
 end
-
 end
-
 
 function [t,x] = BDF3(f,time,x0,h)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% BDF3 - Solves an ODE using the third-order Backward Differentiation Formula.
+%
+% Inputs:
+%   f     - Function handle representing the ODE (dx/dt = f(x, t))
+%   time  - 2-element vector [t0 tf] specifying the start and end times
+%   x0    - Initial state vector
+%   h     - Step size
+%
+% Outputs:
+%   t     - Time vector
+%   x     - State vector at each time step
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% define time vector
 t0 = time(1);
 tf = time(2);
 t = t0:h:tf;
+
+% initialize state variables
 x = zeros(length(x0),length(time));
-opt = optimset('Display','off');
 x(:,1) = x0;
+
+%options for fsolve
+opt = optimset('Display','off');
+
 for k = 1:length(t)-1
-    %use RK4 for startup
-    if k < 3
+    
+    if k < 3 % use RK4 for startup
         [~, x_t, ~] = RK([t(k), t(k)+h], h, 4, f, x(:,k));
         x(:,k+1) = x_t(end,:)';
-    else
+    else % solve using the BDF3 method
         fun = @(y) 18/11*x(:,k) -9/11*x(:,k-1) +2/11*x(:,k-2) + 6/11*h*f(y,t(k+1)) - y;
         x(:,k+1) = fsolve(fun,x(:,k),opt);
     end
