@@ -2,12 +2,11 @@ within ;
 model EX2_2
   Modelica.Thermal.HeatTransfer.Components.HeatCapacitor heatCapacitor(C=3000, T(
       displayUnit="degC",
-      start=393.15,
+      start=409.15,
       fixed=true))
     annotation (Placement(transformation(extent={{-10,100},{10,120}})));
   Modelica.Thermal.HeatTransfer.Sources.FixedHeatFlow fixedHeatFlow(
     Q_flow=2414.5,
-    T_ref=410.15,
     alpha=0)
     annotation (Placement(transformation(extent={{-92,68},{-72,88}})));
   Modelica.Thermal.HeatTransfer.Components.ThermalConductor thermalConductor(G=
@@ -63,7 +62,7 @@ model EX2_2
         rotation=0)));
   Modelica.Blocks.Logical.Hysteresis hysteresisT(
     uLow=42,
-    uHigh=59,
+    uHigh=59.5,
     pre_y_start=false)
     annotation (Placement(transformation(extent={{56,68},{76,88}})));
   Modelica.Blocks.Logical.Switch switch1 annotation (Placement(transformation(
@@ -196,9 +195,6 @@ equation
     Icon(coordinateSystem(preserveAspectRatio=false, extent={{-280,-100},{280,
             180}})),
     Diagram(coordinateSystem(preserveAspectRatio=false, extent={{-280,-100},{
-            280,180}}), graphics={Text(
-          extent={{-178,182},{178,112}},
-          textColor={28,108,200},
-          textString="Temp e Q della gearbox da scegliere bene")}),
+            280,180}})),
     uses(Modelica(version="4.0.0")));
 end EX2_2;
