@@ -7,23 +7,24 @@ close all; clearvars; clc;
 
 properties.A = 1; %m^2 unitary area
 % Tantalum carbide
-properties.k1 = 40;   % W/(m K) volendo si può interpolare curva
+properties.k1 = 40;   % W/(m K)
 properties.l1 = 5e-4; %m
 properties.R1 = properties.l1/properties.k1;
 
 % Graphite
 properties.c2 = 8110; %J/(kg*K) (NIST)
-properties.k2 = 75;      % W/(m K) si può interpolare curva
-properties.rho2 = 2100; %g/cm^3 wikipedia
-properties.l2 = 0.01; 
+properties.k2 = 75;      % W/(m K) 
+properties.rho2 = 2100; % Kg/m^3
+properties.l2 = 0.02; 
 properties.R2 = properties.l2/properties.k2;
 properties.C2 = properties.rho2*properties.l2*properties.c2;
+
 
 %Phenolic resin SPGB0
 properties.rho4 = 1340; %kg/m^3 
 properties.c4 = 1250; % J/(kg K);
 properties.k4 = 0.26; % W/(m K)
-properties.l4 = 0.002; 
+properties.l4 = 0.005; 
 properties.R4 = properties.l4/properties.k4;
 properties.C4 = properties.rho4*properties.l4*properties.c4;
 
@@ -31,40 +32,97 @@ properties.C4 = properties.rho4*properties.l4*properties.c4;
 properties.R3 = (properties.R2 + properties.R4)/2; 
 
 % Aluminum
-properties.k5 = 237; %W/(m K); https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10144406/#:~:text=Aluminum%20has%20a%20thermal%20conductivity,1%2C2%2C3%5D.
+properties.k5 = 237; %W/(m K); 
 properties.l5 = 0.001;
 properties.R5 = properties.l5/properties.k5;
 
-%interface
-properties.Ti = @(t) 20 + (980/1.*t).*(t<=1) + 980.*(t>1) + 273.15;
-properties.To = 293.15;
+% system properties
+properties.Tgas = 1273.15; %[K]
+properties.T0 = 293.15;
+properties.Ti = @(t) properties.T0 + ((properties.Tgas-properties.T0)*t).*(t<=1)...
+    + (properties.Tgas-properties.T0).*(t>1);
+
+
+%% Part 1.3: acasual modeling
+
+x0 = 293.15*ones(5,1);
+ode_tol = 1e-8;
+tf = 60;
+
+model = sim('model.slx');
+
+% plot one-node-model temperature
+figure
+hold on 
+grid on
+plot(model.tout,model.Ti,'k--')
+plot(model.tout,model.one_node.T_layers.T1.Data(:,1))
+plot(model.tout,model.one_node.T_layers.T2.Data(:,1))
+plot(model.tout,model.one_node.T_layers.T3.Data(:,1))
+plot(model.tout,model.one_node.T_layers.T4.Data(:,1))
+plot(model.tout,model.one_node.T_layers.T5.Data(:,1))
+legend('$T_i$','$T_1$','$T_2$','$T_3$','$T_4$','$T_5$')
+xlabel('Time [s]')
+ylabel('Temperature [K]')
+
+% plot two-node-model temperature
+figure
+hold on 
+grid on
+plot(model.tout,model.Ti,'k--')
+plot(model.tout,model.two_nodes.T_layers.T_1.Data(:,1))
+plot(model.tout,model.two_nodes.T_layers.T_21.Data(:,1))
+plot(model.tout,model.two_nodes.T_layers.T_22.Data(:,1))
+plot(model.tout,model.two_nodes.T_layers.T_3.Data(:,1))
+plot(model.tout,model.two_nodes.T_layers.T_41.Data(:,1))
+plot(model.tout,model.two_nodes.T_layers.T_42.Data(:,1))
+plot(model.tout,model.two_nodes.T_layers.T_5.Data(:,1))
+legend('$T_i$','$T_1$','$T_{21}$','$T_{22}$','$T_3$','$T_{41}$','$T_{42}$','$T_5$')
+xlabel('Time [s]')
+ylabel('Temperature [K]')
 
 %% Part 1.2 causal modeling
 
-x0 = 293.15*ones(5,1);
-ode_tol = 1e-6;
 opt = odeset('RelTol',ode_tol,'AbsTol',ode_tol);
-[t,T] = ode15s(@thermalModel,[0 60],x0,opt,properties);
 
+[t,T] = ode15s(@thermalModel,model.tout,x0,opt,properties);
+
+% casual modeling plot
 figure()
 hold on
 grid on
+plot(t,properties.Ti(t),'k--');
 plot(t,T(:,1))
 plot(t,T(:,2))
 plot(t,T(:,3))
 plot(t,T(:,4))
 plot(t,T(:,5))
-legend('T1','T2','T3','T4','T5')
+legend('$T_i$','$T_1$','$T_2$','$T_3$','$T_4$','$T_5$') 
+xlabel('Time [s]')
+ylabel('Temperature [K]')
 
-%% Part 1.3: acasual modeling
+% plot acasual vs causal modeling
+error.T1 = abs( model.one_node.T_layers.T1.Data(:,1) - T(:,1) ) ./ T(:,1);
+error.T2 = abs( model.one_node.T_layers.T2.Data(:,1) - T(:,2) ) ./ T(:,2);
+error.T3 = abs( model.one_node.T_layers.T3.Data(:,1) - T(:,3) ) ./ T(:,3);
+error.T4 = abs( model.one_node.T_layers.T4.Data(:,1) - T(:,4) ) ./ T(:,4);
+error.T5 = abs( model.one_node.T_layers.T5.Data(:,1) - T(:,5) ) ./ T(:,5);
 
-% model = sim('modello.slx');
-
-
+figure
+semilogy(t,error.T1);
+hold on
+grid on
+semilogy(t,error.T2);
+semilogy(t,error.T3);
+semilogy(t,error.T4);
+semilogy(t,error.T5);
+xlabel('Time [s]')
+ylabel('Normalized relative error')
+legend('$T_1$','$T_2$','$T_3$','$T_4$','$T_5$')
 %% functions
 
 function dx = thermalModel(t,x,properties)
-To = properties.To;
+To = properties.T0;
 Ti = properties.Ti(t);
 
 R1 = properties.R1;
