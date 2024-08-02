@@ -3,6 +3,7 @@
 % Author: Giuseppe Brentino
 
 close all; clearvars; clc;
+plotStyle;
 %% Part1 : Thermal properties
 
 properties.A = 1; %m^2 unitary area
@@ -139,6 +140,28 @@ xlabel('Time [s]')
 ylabel('Normalized relative error')
 legend('$T_1$','$T_2$','$T_3$','$T_4$','$T_5$')
 %% functions
+
+function plotStyle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Set figure properties for better looking plots
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% interpreter:
+set(0, 'defaultTextInterpreter', 'Latex')
+set(0, 'defaultAxesTickLabelInterpreter', 'Latex')
+set(0, 'defaultLegendInterpreter', 'Latex')
+set(0,'defaultAxesXGrid','on')
+set(0,'defaultAxesYGrid','on')
+% lines:
+set(0,'defaultLineLineWidth', 1.5);
+set(0,'defaultLineMarkerSize',6) ;
+% legend:
+set(0, 'defaultLegendLocation','southoutside');
+set(0, 'defaultLegendOrientation','horizontal');
+set(0, 'defaultLegendFontSize',12);
+% axes:
+set(0,'defaultAxesFontSize',16);
+end
 
 function dx = thermalModel(t,x,properties)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
