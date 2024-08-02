@@ -7,7 +7,7 @@ model EX2_2
     annotation (Placement(transformation(extent={{-10,100},{10,120}})));
   Modelica.Thermal.HeatTransfer.Sources.FixedHeatFlow fixedHeatFlow(
     Q_flow=2414.5,
-    T_ref=393.15,
+    T_ref=410.15,
     alpha=0)
     annotation (Placement(transformation(extent={{-92,68},{-72,88}})));
   Modelica.Thermal.HeatTransfer.Components.ThermalConductor thermalConductor(G=
@@ -58,7 +58,7 @@ model EX2_2
   Modelica.Thermal.HeatTransfer.Celsius.TemperatureSensor
                                          temperatureSensor annotation (
       Placement(transformation(
-        origin={26,78},
+        origin={24,78},
         extent={{-10,-10},{10,10}},
         rotation=0)));
   Modelica.Blocks.Logical.Hysteresis hysteresisT(
@@ -151,9 +151,9 @@ equation
   connect(convection.solid, thermalConductor.port_b) annotation (Line(points={{
           1.77636e-15,60},{0,60},{0,78},{-28,78}}, color={191,0,0}));
   connect(temperatureSensor.port, thermalConductor.port_b)
-    annotation (Line(points={{16,78},{-28,78}}, color={191,0,0}));
+    annotation (Line(points={{14,78},{-28,78}}, color={191,0,0}));
   connect(hysteresisT.u, temperatureSensor.T)
-    annotation (Line(points={{54,78},{36,78}}, color={0,0,127}));
+    annotation (Line(points={{54,78},{34,78}}, color={0,0,127}));
   connect(hysteresisT.y, switch1.u2) annotation (Line(points={{77,78},{82,78},{
           82,-44},{-12,-44}}, color={255,0,255}));
   connect(const1.y, switch1.u1) annotation (Line(points={{31,-24},{-6,-24},{-6,
@@ -197,7 +197,7 @@ equation
             180}})),
     Diagram(coordinateSystem(preserveAspectRatio=false, extent={{-280,-100},{
             280,180}}), graphics={Text(
-          extent={{-162,192},{194,122}},
+          extent={{-178,182},{178,112}},
           textColor={28,108,200},
           textString="Temp e Q della gearbox da scegliere bene")}),
     uses(Modelica(version="4.0.0")));
