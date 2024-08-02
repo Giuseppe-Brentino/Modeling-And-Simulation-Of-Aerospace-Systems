@@ -46,7 +46,7 @@ properties.Ti = @(t) properties.T0 + ((properties.Tgas-properties.T0)*t).*(t<=1)
 %% Part 1.3: acasual modeling
 
 x0 = 293.15*ones(5,1);
-ode_tol = 1e-8;
+ode_tol = 1e-11;
 tf = 60;
 
 model = sim('model.slx');
@@ -81,11 +81,30 @@ legend('$T_i$','$T_1$','$T_{21}$','$T_{22}$','$T_3$','$T_{41}$','$T_{42}$','$T_5
 xlabel('Time [s]')
 ylabel('Temperature [K]')
 
+% Two-nodes vs 1-node models
+tf = 600;
+modelLong = sim('model.slx');
+deltaT1 = modelLong.two_nodes.T_interfaces.T_int12.Data(:,1) - modelLong.one_node.T_interfaces.T_int12.Data(:,1);
+deltaT2 = modelLong.two_nodes.T_interfaces.T_int23.Data(:,1) - modelLong.one_node.T_interfaces.T_int23.Data(:,1);
+deltaT3 = modelLong.two_nodes.T_interfaces.T_int34.Data(:,1) - modelLong.one_node.T_interfaces.T_int34.Data(:,1);
+deltaT4 = modelLong.two_nodes.T_interfaces.T_int45.Data(:,1) - modelLong.one_node.T_interfaces.T_int45.Data(:,1);
+
+figure
+hold on
+grid on
+plot(modelLong.tout,deltaT1)
+plot(modelLong.tout,deltaT2)
+plot(modelLong.tout,deltaT3)
+plot(modelLong.tout,deltaT4)
+legend('$T_{1-2}$','$T_{2-3}$','$T_{3-4}$','$T_{4-5}$')
+xlabel('Time [s]')
+ylabel('$T_{2nodes}-T_{1node}$ [K]')
 %% Part 1.2 causal modeling
 
 opt = odeset('RelTol',ode_tol,'AbsTol',ode_tol);
 
 [t,T] = ode15s(@thermalModel,model.tout,x0,opt,properties);
+
 
 % casual modeling plot
 figure()
@@ -122,6 +141,24 @@ legend('$T_1$','$T_2$','$T_3$','$T_4$','$T_5$')
 %% functions
 
 function dx = thermalModel(t,x,properties)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% thermalModel - Differential thermal model of the system.
+%
+% Inputs:
+%   t          - Current time
+%   x          - State vector [T1, T2, T3, T4, T5]
+%   properties - Structure containing the thermal properties:
+%                .T0 - Ambient temperature
+%                .Ti - Function handle for the input temperature (Ti(t))
+%                .R1, R2, R3, R4, R5 - Thermal resistances
+%                .C2, C4 - Thermal capacitances
+%
+% Outputs:
+%   dx         - Time derivative of the state vector
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 To = properties.T0;
 Ti = properties.Ti(t);
 
@@ -142,3 +179,4 @@ dx(5) = (x(4)-x(5))/(0.5*(R4+R5)) - (x(5)-To)/(0.5*R5);
 
 dx = dx';
 end
+
