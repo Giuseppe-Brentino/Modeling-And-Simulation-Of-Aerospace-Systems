@@ -3,5 +3,7 @@
 *.txt
 *.c
 *.exe
-./Assignement 2/slprj
 *.pdf
+*.slxc
+/Assignment 2/slprj
+*.autosave
