@@ -78,6 +78,7 @@ plot(model.tout,model.two_nodes.T_layers.T_3.Data(:,1))
 plot(model.tout,model.two_nodes.T_layers.T_41.Data(:,1))
 plot(model.tout,model.two_nodes.T_layers.T_42.Data(:,1))
 plot(model.tout,model.two_nodes.T_layers.T_5.Data(:,1))
+
 legend('$T_i$','$T_1$','$T_{21}$','$T_{22}$','$T_3$','$T_{41}$','$T_{42}$','$T_5$')
 xlabel('Time [s]')
 ylabel('Temperature [K]')
@@ -102,10 +103,12 @@ xlabel('Time [s]')
 ylabel('$T_{2nodes}-T_{1node}$ [K]')
 %% Part 1.2 causal modeling
 
-opt = odeset('RelTol',ode_tol,'AbsTol',ode_tol);
+M = zeros(5,5);
+M(2,2) = (properties.C2);
+M(4,4) = (properties.C4);
 
-[t,T] = ode15s(@thermalModel,model.tout,x0,opt,properties);
-
+options = odeset('RelTol',ode_tol,'AbsTol',ode_tol,'Mass',M,'MStateDependence','none');
+[t,T] = ode15s(@thermalModel,model.tout,x0,options,properties);
 
 % casual modeling plot
 figure()
@@ -175,7 +178,6 @@ function dx = thermalModel(t,x,properties)
 %                .T0 - Ambient temperature
 %                .Ti - Function handle for the input temperature (Ti(t))
 %                .R1, R2, R3, R4, R5 - Thermal resistances
-%                .C2, C4 - Thermal capacitances
 %
 % Outputs:
 %   dx         - Time derivative of the state vector
@@ -191,13 +193,10 @@ R3 = properties.R3;
 R4 = properties.R4;
 R5 = properties.R5;
 
-C2 = properties.C2;
-C4 = properties.C4;
-
 dx(1) = ( Ti-x(1) )/(0.5*R1) - ( x(1)-x(2) )/( 0.5*(R1+R2) );
-dx(2) = 1/C2 * ( (x(1)-x(2))/(0.5*(R1+R2)) - (x(2)-x(3))/(0.5*(R2+R3)) );
+dx(2) = (x(1)-x(2))/(0.5*(R1+R2)) - (x(2)-x(3))/(0.5*(R2+R3));
 dx(3) = (x(2)-x(3))/(0.5*(R2+R3)) - (x(3)-x(4))/(0.5*(R3+R4));
-dx(4) = 1/C4 * ( (x(3)-x(4))/(0.5*(R3+R4)) - (x(4)-x(5))/(0.5*(R4+R5)) );
+dx(4) = (x(3)-x(4))/(0.5*(R3+R4)) - (x(4)-x(5))/(0.5*(R4+R5));
 dx(5) = (x(4)-x(5))/(0.5*(R4+R5)) - (x(5)-To)/(0.5*R5);
 
 dx = dx';
