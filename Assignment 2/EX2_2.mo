@@ -21,9 +21,9 @@ model EX2_2
     ATank=0.01,
     hTank=0.8,
     pAmbient=100000,
-    useHeatPort=true,
+    useHeatPort=false,
     level(start=0.8, fixed=true))
-    annotation (Placement(transformation(extent={{-242,26},{-222,46}})));
+    annotation (Placement(transformation(extent={{-176,48},{-156,68}})));
   Modelica.Thermal.FluidHeatFlow.Components.Pipe pipe(
     medium=Modelica.Thermal.FluidHeatFlow.Media.Water_10degC(),
     m=1000*0.4*0.02^2*Modelica.Constants.pi,
@@ -69,7 +69,7 @@ model EX2_2
         extent={{-10,10},{10,-10}},
         rotation=180,
         origin={-24,-44})));
-  Modelica.Blocks.Sources.Constant const1(k=2.75*0.008/300) annotation (
+  Modelica.Blocks.Sources.Constant const1(k=2.2*0.008/300)  annotation (
       Placement(transformation(
         extent={{10,-10},{-10,10}},
         rotation=0,
@@ -89,30 +89,6 @@ model EX2_2
     useHeatPort=true,
     level(start=0, fixed=true))
     annotation (Placement(transformation(extent={{120,26},{140,46}})));
-  Modelica.Blocks.Logical.Hysteresis hysteresisT1(
-    uLow=273.15 + 5,
-    uHigh=273.15 + 10,
-    pre_y_start=true)
-    annotation (Placement(transformation(extent={{-206,38},{-186,58}})));
-  Modelica.Blocks.Logical.Switch switch2 annotation (Placement(transformation(
-        extent={{-10,10},{10,-10}},
-        rotation=180,
-        origin={-188,76})));
-  Modelica.Thermal.HeatTransfer.Sources.PrescribedHeatFlow prescribedHeatFlow
-    annotation (Placement(transformation(
-        extent={{-10,-10},{10,10}},
-        rotation=180,
-        origin={-266,76})));
-  Modelica.Blocks.Sources.Constant const3(k=-4000) annotation (Placement(
-        transformation(
-        extent={{10,-10},{-10,10}},
-        rotation=0,
-        origin={-126,96})));
-  Modelica.Blocks.Sources.Constant const4(k=0) annotation (Placement(
-        transformation(
-        extent={{10,-10},{-10,10}},
-        rotation=0,
-        origin={-116,38})));
   Modelica.Blocks.Logical.Hysteresis hysteresisT2(
     uLow=5.5 + 273.15,
     uHigh=9 + 273.15,
@@ -163,16 +139,6 @@ equation
           {-116,-44},{-116,-10}}, color={0,0,127}));
   connect(pipe.flowPort_a, openTank2.flowPort) annotation (Line(points={{10,
           -1.77636e-15},{130,-1.77636e-15},{130,26}}, color={255,0,0}));
-  connect(hysteresisT1.y, switch2.u2) annotation (Line(points={{-185,48},{-134,
-          48},{-134,76},{-176,76}}, color={255,0,255}));
-  connect(prescribedHeatFlow.Q_flow, switch2.y)
-    annotation (Line(points={{-256,76},{-199,76}}, color={0,0,127}));
-  connect(const4.y, switch2.u3) annotation (Line(points={{-127,38},{-130,38},{
-          -130,52},{-170,52},{-170,68},{-176,68}}, color={0,0,127}));
-  connect(const3.y, switch2.u1) annotation (Line(points={{-137,96},{-170,96},{
-          -170,84},{-176,84}}, color={0,0,127}));
-  connect(prescribedHeatFlow.port, openTank.heatPort) annotation (Line(points={
-          {-276,76},{-282,76},{-282,26},{-242,26}}, color={191,0,0}));
   connect(hysteresisT2.y, switch3.u2) annotation (Line(points={{223,46},{274,46},
           {274,74},{232,74}}, color={255,0,255}));
   connect(const6.y, switch3.u3) annotation (Line(points={{281,36},{278,36},{278,
@@ -185,10 +151,8 @@ equation
     annotation (Line(points={{209,74},{184,74}}, color={0,0,127}));
   connect(prescribedHeatFlow1.port, openTank2.heatPort) annotation (Line(points=
          {{164,74},{106,74},{106,26},{120,26}}, color={191,0,0}));
-  connect(hysteresisT1.u, openTank.TTank) annotation (Line(points={{-208,48},{
-          -216,48},{-216,30},{-221,30}}, color={0,0,127}));
   connect(openTank.flowPort, volumeFlow.flowPort_a)
-    annotation (Line(points={{-232,26},{-232,0},{-126,0}}, color={255,0,0}));
+    annotation (Line(points={{-166,48},{-166,0},{-126,0}}, color={255,0,0}));
   connect(volumeFlow.flowPort_b, pipe.flowPort_b) annotation (Line(points={{
           -106,0},{-58,0},{-58,7.21645e-16},{-10,7.21645e-16}}, color={255,0,0}));
   annotation (
