@@ -7,8 +7,8 @@ plotStyle;
 %% Part1 : Thermal properties
 
 properties.A = 1; %m^2 unitary area
-% Tantalum carbide
-properties.k1 = 40;   % W/(m K)
+% Carbon phenolic
+properties.k1 = 1.43;   % W/(m K)
 properties.l1 = 5e-4; %m
 properties.R1 = properties.l1/properties.k1;
 

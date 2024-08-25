@@ -261,7 +261,7 @@ grid on
 loglog(tol_vect, fe_RK2,'-o','DisplayName','RK2')
 loglog(tol_vect, fe_RK4,'-o','DisplayName','RK4')
 legend
-xlabel('Tollerance')
+xlabel('Tolerance')
 ylabel('Function evaluations')
 
 % plots h-lambda

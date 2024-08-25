@@ -46,7 +46,7 @@ hold on
 grid on
 plot(data(:,1),data(:,3),'DisplayName','Gearbox temperature')
 xlabel('Time [s]')
-ylabel('Temperature [°C]')
+ylabel('Temperature [$^\circ$C]')
 yline(60,'k--','LineWidth',1.5,'DisplayName','Max T')
 yline(40,'r--','LineWidth',1.5,'DisplayName','Min T')
 legend
@@ -71,12 +71,13 @@ grid on
 xlabel('Time [s]')
 yyaxis left
 plot(data(:,1),data(:,5)-273.15,'DisplayName','Water temperature')
-ylabel('Temperature [°C]')
+ylabel('Temperature [$^\circ$C]')
 yline(10,'k--','LineWidth',1.5,'DisplayName','Max T')
 yline(5,'r--','LineWidth',1.5,'DisplayName','Min T')
 yyaxis right
 plot(data(:,1),data(:,4),'DisplayName','Heat flux')
 ylabel('Heat Flux [W]')
+ylim([-4010 10])
 legend
 
 %% function
